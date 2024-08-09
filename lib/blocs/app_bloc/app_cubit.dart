@@ -20,7 +20,8 @@ class AppCubit extends Cubit<AppState> {
             searchTextList: [],
             items: [],
             isLoading: false,
-            currentTabIndex: 0)) {
+            currentTabIndex: 0, 
+            searchQuery: null, categorySearchQuery: null,)) {
     _loadCategories();
     loadItems();
     _loadSearchTextList(); // Load search text list during initialization
@@ -28,6 +29,13 @@ class AppCubit extends Cubit<AppState> {
 
   void setCurrentTabIndex(int currentTabIndex) {
     emit(state.copyWith(currentTabIndex: currentTabIndex));
+  }
+
+     void setSearchQuery(String query) {
+    emit(state.copyWith(searchQuery: query));
+  }
+     void setCategorySearchQuery(String query) {
+    emit(state.copyWith(categorySearchQuery: query));
   }
 
   Future<void> _loadCategories() async {

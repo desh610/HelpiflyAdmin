@@ -5,11 +5,14 @@ import 'package:helpiflyadmin/blocs/app_bloc/app_state.dart';
 import 'package:helpiflyadmin/constants/colors.dart';
 import 'package:helpiflyadmin/models/item_model.dart';
 import 'package:helpiflyadmin/widgets/custom_button.dart';
+import 'package:helpiflyadmin/widgets/custom_searchbar.dart';
 import 'package:helpiflyadmin/widgets/new_item_bottomsheet.dart';
 import 'package:helpiflyadmin/widgets/update_item_bottomsheet.dart';
 
 class ItemsScreen extends StatelessWidget {
-  const ItemsScreen({super.key});
+  ItemsScreen({super.key});
+
+    final TextEditingController searchTextController = TextEditingController();
 
       void _showNewItemBottomSheet(BuildContext context) {
     showModalBottomSheet(
@@ -58,11 +61,12 @@ class ItemsScreen extends StatelessWidget {
         padding: EdgeInsets.only(left: 10, right: 10, top: 15),
         child: Column(
           children: [
-            Container(
-              height: 50,
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                  color: grayColor, borderRadius: BorderRadius.circular(8)),
+            CustomSearchBar(
+              key: Key('2'),
+              controller: searchTextController,
+              onChanged: (text) {
+                context.read<AppCubit>().setSearchQuery(text);
+              },
             ),
             SizedBox(height: 15),
             Row(
@@ -76,11 +80,17 @@ class ItemsScreen extends StatelessWidget {
             Expanded(
               child: BlocBuilder<AppCubit, AppState>(
                 builder: (context, state) {
+                final filteredItems = state.items.where((item) {
+                final query = state.searchQuery?.toLowerCase() ?? '';
+                return item.title.toLowerCase().contains(query) || item.description.toLowerCase().contains(query);
+              }).toList();
+
                   return ListView.builder(
+                    shrinkWrap: true,
                     physics: BouncingScrollPhysics(),
-                    itemCount: state.items.length,
+                    itemCount: filteredItems.length,
                     itemBuilder: (context, index) {
-                      ItemModel thisItem = state.items[index];
+                      ItemModel thisItem = filteredItems[index];
                       return GestureDetector(
                         onTap: () => _showUpdateItemBottomSheet(context, thisItem),
                         child: Container(

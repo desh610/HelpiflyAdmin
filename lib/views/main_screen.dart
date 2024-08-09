@@ -16,9 +16,9 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
-    const ItemsScreen(),
+    ItemsScreen(),
     const RequestsScreen(),
-    const CategoriesScreen(),
+    CategoriesScreen(),
   ];
 
   void _onItemTapped(BuildContext context, int index) {

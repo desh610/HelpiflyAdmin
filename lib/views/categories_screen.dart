@@ -4,9 +4,12 @@ import 'package:helpiflyadmin/blocs/app_bloc/app_cubit.dart';
 import 'package:helpiflyadmin/blocs/app_bloc/app_state.dart';
 import 'package:helpiflyadmin/constants/colors.dart';
 import 'package:helpiflyadmin/models/item_model.dart';
+import 'package:helpiflyadmin/widgets/custom_searchbar.dart';
 
 class CategoriesScreen extends StatelessWidget {
-  const CategoriesScreen({super.key});
+  CategoriesScreen({super.key});
+
+  final TextEditingController categorySearchTextController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -30,28 +33,33 @@ class CategoriesScreen extends StatelessWidget {
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Container(
-              height: 50,
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                  color: grayColor, borderRadius: BorderRadius.circular(8)),
+            CustomSearchBar(
+              key: Key("1"),
+              controller: categorySearchTextController,
+              onChanged: (text) {
+                context.read<AppCubit>().setCategorySearchQuery(text);
+              },
             ),
             SizedBox(height: 15),
             Expanded(
               child: BlocBuilder<AppCubit, AppState>(
                 builder: (context, state) {
+                   final filteredCategories = state.categories.where((category) {
+                  final query = state.categorySearchQuery?.toLowerCase() ?? '';
+                  return category.toLowerCase().contains(query);
+                }).toList();
                   return ListView.builder(
                     physics: BouncingScrollPhysics(),
-                    itemCount: state.categories.length,
+                    itemCount: filteredCategories.length,
                     itemBuilder: (context, index) {
-                      String thisCategory = state.categories[index];
+                      String thisCategory = filteredCategories[index];
                       return Container(
-                        height: 60,
+                        // height: 50,
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
                             color: inCardColor,
                             borderRadius: BorderRadius.circular(8)),
-                        padding: EdgeInsets.all(8),
+                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
                         margin: EdgeInsets.only(bottom: 10),
                         child: Text(
                           thisCategory,

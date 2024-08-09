@@ -7,6 +7,8 @@ class AppState {
   final String? error;
   final int currentTabIndex;
   final List<String> searchTextList;
+  String? searchQuery;
+  String? categorySearchQuery;
 
   AppState({
     required this.categories,
@@ -14,7 +16,9 @@ class AppState {
     required this.isLoading,
     this.error,
     this.currentTabIndex = 0,
-    required this.searchTextList
+    required this.searchTextList,
+    this.searchQuery,
+    this.categorySearchQuery,
   });
 
   AppState copyWith({
@@ -24,14 +28,18 @@ class AppState {
     String? error,
     int? currentTabIndex,
     List<String>? searchTextList,
+    String? searchQuery,
+    String? categorySearchQuery,
   }) {
     return AppState(
       categories: categories ?? this.categories,
       items: items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
-      currentTabIndex: currentTabIndex ?? 0,
+      currentTabIndex: currentTabIndex ?? this.currentTabIndex, // Corrected line
       searchTextList: searchTextList ?? this.searchTextList,
+      searchQuery: searchQuery ?? this.searchQuery,
+      categorySearchQuery: categorySearchQuery ?? this.categorySearchQuery,
     );
   }
 }
