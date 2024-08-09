@@ -169,7 +169,7 @@ class AppCubit extends Cubit<AppState> {
     }
   }
 
-  Future<String> _uploadItemImage(File profileImage) async {
+  Future<String> _uploadItemImage(String id, File profileImage) async {
   try {
     // Load the image
     img.Image? image = img.decodeImage(profileImage.readAsBytesSync());
@@ -184,7 +184,7 @@ class AppCubit extends Cubit<AppState> {
     Uint8List uint8list = Uint8List.fromList(compressedImage);
 
     // Upload the compressed image
-    String filePath = 'itemImages/2.png';
+    String filePath = 'itemImages/$id.png';
     await FirebaseStorage.instance.ref(filePath).putData(uint8list);
     String downloadUrl = await FirebaseStorage.instance.ref(filePath).getDownloadURL();
     return downloadUrl;
@@ -204,15 +204,17 @@ class AppCubit extends Cubit<AppState> {
 }) async {
   emit(state.copyWith(isLoading: true));
   try {
-    // Upload item image if available
-    String? itemImageUrl;
-    if (itemImage != null) {
-      itemImageUrl = await _uploadItemImage(itemImage);
-    }
 
     // Generate a new document reference and get its ID
     DocumentReference docRef = FirebaseFirestore.instance.collection('items').doc();
     String generatedId = docRef.id;
+
+        // Upload item image if available
+    String? itemImageUrl;
+    if (itemImage != null) {
+      itemImageUrl = await _uploadItemImage(generatedId, itemImage);
+    }
+
 
     // Create ItemModel object with the generated ID
     ItemModel itemModel = ItemModel(
@@ -263,7 +265,7 @@ Future<void> updateItem({
 
     // Upload item image if a new file is provided
     if (itemImage != null) {
-      itemImageUrl = await _uploadItemImage(itemImage);
+      itemImageUrl = await _uploadItemImage(existingItem.id, itemImage);
     }
 
     final reviewsAsMapList = existingItem.reviews.map((review) => review.toJson()).toList();
