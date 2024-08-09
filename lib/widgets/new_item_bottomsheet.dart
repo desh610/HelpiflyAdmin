@@ -9,14 +9,14 @@ import 'package:helpiflyadmin/widgets/custom_dropdown_by_array.dart';
 import 'package:helpiflyadmin/widgets/widgets_exporter.dart';
 import 'package:image_picker/image_picker.dart';
 
-class NewPostBottomSheet extends StatefulWidget {
-  const NewPostBottomSheet({super.key});
+class NewItemBottomSheet extends StatefulWidget {
+  const NewItemBottomSheet({super.key});
 
   @override
-  _NewPostBottomSheetState createState() => _NewPostBottomSheetState();
+  _NewItemBottomSheetState createState() => _NewItemBottomSheetState();
 }
 
-class _NewPostBottomSheetState extends State<NewPostBottomSheet> {
+class _NewItemBottomSheetState extends State<NewItemBottomSheet> {
   final TextEditingController _mainTitleController = TextEditingController();
   final TextEditingController _secondaryTitleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();

@@ -176,7 +176,7 @@ class AppCubit extends Cubit<AppState> {
     Uint8List uint8list = Uint8List.fromList(compressedImage);
 
     // Upload the compressed image
-    String filePath = 'itemImages/1.png';
+    String filePath = 'itemImages/2.png';
     await FirebaseStorage.instance.ref(filePath).putData(uint8list);
     String downloadUrl = await FirebaseStorage.instance.ref(filePath).getDownloadURL();
     return downloadUrl;
@@ -238,5 +238,79 @@ class AppCubit extends Cubit<AppState> {
     print('Error: $e');
   }
 }
+
+Future<void> updateItem({
+  required ItemModel existingItem,
+  required String mainTitle,
+  required String secondaryTitle,
+  required String description,
+  required String type,
+  required String category,
+  File? itemImage,
+}) async {
+  try {
+    emit(state.copyWith(isLoading: true));
+
+    String? itemImageUrl = existingItem.imageUrl;
+
+    // Upload item image if a new file is provided
+    if (itemImage != null) {
+      itemImageUrl = await _uploadItemImage(itemImage);
+    }
+
+    final reviewsAsMapList = existingItem.reviews.map((review) => review.toJson()).toList();
+
+    // Create a map of the updated item data
+    final updatedItemInfo = {
+      'title': mainTitle,
+      'title2': secondaryTitle,
+      'description': description,
+      'category': category,
+      'type': type,
+      'credit': existingItem.credit,
+      'reviews': reviewsAsMapList,
+      'imageUrl': itemImageUrl,
+    };
+
+    // Update the Firestore document
+    final itemDocRef = FirebaseFirestore.instance
+        .collection('items')
+        .doc(existingItem.id);
+    await itemDocRef.update(updatedItemInfo);
+
+    // Create a new ItemModel with updated information
+    final updatedItemInfoModel = ItemModel(
+      id: existingItem.id,
+      title: mainTitle,
+      title2: secondaryTitle,
+      description: description,
+      type: type,
+      category: category,
+      credit: existingItem.credit,
+      reviews: existingItem.reviews,
+      imageUrl: itemImageUrl,
+    );
+
+    // Save the updated item info to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    String itemInfoJson = jsonEncode(updatedItemInfoModel.toJson());
+    await prefs.setString('items-admin', itemInfoJson);
+
+    // Replace the existing item with the updated one in the list
+    final updatedItems = state.items.map((item) {
+      return item.id == existingItem.id ? updatedItemInfoModel : item;
+    }).toList();
+
+    emit(state.copyWith(
+      items: updatedItems,
+      isLoading: false,
+    ));
+  } catch (e) {
+    emit(state.copyWith(isLoading: false));
+    // Handle error appropriately, e.g., show a snackbar or log the error
+  }
+}
+
+
 
 }
