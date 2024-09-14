@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.rdprojects.helpiflyadmin">
    <application
-        android:label="helpiflyadmin"
+        android:label="Helpifly Admin"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
