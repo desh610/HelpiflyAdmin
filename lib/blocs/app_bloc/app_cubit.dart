@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:helpiflyadmin/blocs/app_bloc/app_state.dart';
 import 'package:helpiflyadmin/models/item_model.dart';
+import 'package:helpiflyadmin/models/request_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image/image.dart' as img;
 
@@ -21,7 +22,7 @@ class AppCubit extends Cubit<AppState> {
             items: [],
             isLoading: false,
             currentTabIndex: 0, 
-            searchQuery: null, categorySearchQuery: null,)) {
+            searchQuery: null, categorySearchQuery: null, requests: [],)) {
     _loadCategories();
     loadItems();
     _loadSearchTextList(); // Load search text list during initialization
@@ -322,5 +323,191 @@ Future<void> updateItem({
 }
 
 
+Future<void> loadRequests() async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? cachedItems = prefs.getString('requests-admin');
+
+      if (cachedItems != null) {
+        List<dynamic> cachedList = jsonDecode(cachedItems);
+        List<RequestModel> requests = cachedList.map((item) => RequestModel.fromJson(item)).toList();
+       
+      
+        emit(state.copyWith(requests: requests, isLoading: false));
+        // Fetch from Firestore to update cache (if needed)
+        _fetchRequestsFromFirestore();
+      } else {
+        _fetchRequestsFromFirestore(); // Fetch from Firestore if not cached
+      }
+    } catch (e) {
+      emit(state.copyWith(isLoading: false, error: 'Failed to load items: $e'));
+    }
+  }
+
+  Future<void> _fetchRequestsFromFirestore() async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await _firestore.collection('requests').get();
+
+      List<RequestModel> requests = querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return RequestModel.fromJson(data);
+      }).toList();
+
+      // Cache items
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('requests-admin', jsonEncode(requests.map((item) => item.toJson()).toList()));
+
+      // Emit the updated state with filtered and sorted lists
+      emit(state.copyWith(
+          requests: requests,
+          isLoading: false));
+
+    } catch (e) {
+      emit(state.copyWith(
+          isLoading: false, error: 'Failed to fetch items from Firestore: $e'));
+    }
+  }
+
+   Future<void> approveItem({
+  required RequestModel existingItem,
+  required String mainTitle,
+  required String secondaryTitle,
+  required String description,
+  required String type,
+  required String category,
+  required String imageUrl,
+  File? itemImage,
+  required BuildContext context,
+}) async {
+  emit(state.copyWith(isLoading: true));
+  try {
+
+    // Generate a new document reference and get its ID
+    DocumentReference docRef = FirebaseFirestore.instance.collection('items').doc();
+    String generatedId = docRef.id;
+
+        // Upload item image if available
+    String? itemImageUrl = imageUrl;
+    if (itemImage != null) {
+      itemImageUrl = await _uploadItemImage(generatedId, itemImage);
+    }
+
+
+    // Create ItemModel object with the generated ID
+    ItemModel itemModel = ItemModel(
+      id: generatedId, // Set the generated ID here
+      title: mainTitle,
+      title2: secondaryTitle,
+      description: description,
+      category: category,
+      credit: 0,
+      imageUrl: itemImageUrl ?? '',
+      reviews: [],
+      type: type,
+    );
+
+    // Save item info to Firestore with the generated ID
+    await docRef.set(itemModel.toJson());
+
+    // Save item info to SharedPreferences as a JSON string
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String itemInfoJson = jsonEncode(itemModel.toJson());
+    await prefs.setString('items-admin', itemInfoJson);
+
+    emit(state.copyWith(isLoading: false));
+    print('Item added successfully!');
+    updateStatus(existingItem: existingItem, category: category, description: description, mainTitle: mainTitle, secondaryTitle: secondaryTitle, type: type, itemImage: itemImage);
+    _fetchRequestsFromFirestore();
+    _fetchItemsFromFirestore();
+  } on FirebaseAuthException catch (e) {
+    emit(state.copyWith(isLoading: false));
+    print('FirebaseAuthException: ${e.message}');
+  } catch (e) {
+    emit(state.copyWith(isLoading: false));
+    print('Error: $e');
+  }
+}
+
+Future<void> updateStatus({
+  required RequestModel existingItem,
+  required String mainTitle,
+  required String secondaryTitle,
+  required String description,
+  required String type,
+  required String category,
+  File? itemImage,
+}) async {
+  try {
+    emit(state.copyWith(isLoading: true));
+
+    String? itemImageUrl = existingItem.imageUrl;
+
+    // Upload item image if a new file is provided
+    if (itemImage != null) {
+      itemImageUrl = await _uploadItemImage(existingItem.id, itemImage);
+    }
+
+    final reviewsAsMapList = existingItem.reviews.map((review) => review.toJson()).toList();
+
+    final updatedItemInfo = {
+      "id": existingItem.id,
+      "title": existingItem.title,
+      "title2": existingItem.title2,
+      "description": existingItem.description,
+      "category": existingItem.description,
+      "credit": existingItem.credit,
+      "imageUrl": existingItem.imageUrl,
+      "reviews": reviewsAsMapList,
+      "type": existingItem.type, 
+      "status": 'completed',
+      "requestedBy": existingItem.requestedBy,
+    };
+
+    // Update the Firestore document
+    final itemDocRef = FirebaseFirestore.instance
+        .collection('requests')
+        .doc(existingItem.id);
+    await itemDocRef.update(updatedItemInfo);
+
+    // Create a new ItemModel with updated information
+    final updatedItemInfoModel = RequestModel(
+      id: existingItem.id,
+      title: mainTitle,
+      title2: secondaryTitle,
+      description: description,
+      type: type,
+      category: category,
+      requestedBy: existingItem.requestedBy,
+      credit: existingItem.credit,
+      reviews: existingItem.reviews,
+      status: "completed",
+      imageUrl: itemImageUrl,
+    );
+
+    // Save the updated item info to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    String itemInfoJson = jsonEncode(updatedItemInfoModel.toJson());
+    await prefs.setString('requests-admin', itemInfoJson);
+
+    // Replace the existing item with the updated one in the list
+    final updatedItems = state.items.map((item) {
+      return item.id == existingItem.id ? updatedItemInfoModel : item;
+    }).toList();
+
+    emit(state.copyWith(
+      requests: updatedItems as List<RequestModel>,
+      isLoading: false,
+    ));
+  } catch (e) {
+    emit(state.copyWith(isLoading: false));
+    // Handle error appropriately, e.g., show a snackbar or log the error
+  }
+}
+
+
 
 }
+
+

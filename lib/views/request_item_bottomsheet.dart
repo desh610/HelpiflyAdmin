@@ -6,19 +6,20 @@ import 'package:helpiflyadmin/blocs/app_bloc/app_cubit.dart';
 import 'package:helpiflyadmin/constants/colors.dart';
 import 'package:helpiflyadmin/helper/helper_functions.dart';
 import 'package:helpiflyadmin/models/item_model.dart';
+import 'package:helpiflyadmin/models/request_model.dart';
 import 'package:helpiflyadmin/widgets/custom_dropdown_by_array.dart';
 import 'package:helpiflyadmin/widgets/widgets_exporter.dart';
 import 'package:image_picker/image_picker.dart';
 
-class UpdateItemBottomSheet extends StatefulWidget {
-final ItemModel item;
-  const UpdateItemBottomSheet({super.key, required this.item});
+class RequestItemBottomSheet extends StatefulWidget {
+final RequestModel item;
+  const RequestItemBottomSheet({super.key, required this.item});
 
   @override
-  _UpdateItemBottomSheetState createState() => _UpdateItemBottomSheetState();
+  _RequestItemBottomSheetState createState() => _RequestItemBottomSheetState();
 }
 
-class _UpdateItemBottomSheetState extends State<UpdateItemBottomSheet> {
+class _RequestItemBottomSheetState extends State<RequestItemBottomSheet> {
   final TextEditingController _mainTitleController = TextEditingController();
   final TextEditingController _secondaryTitleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -253,7 +254,7 @@ class _UpdateItemBottomSheetState extends State<UpdateItemBottomSheet> {
                   SizedBox(height: 40),
                   CustomButton(
                     onTap: () {
-                      context.read<AppCubit>().updateItem(
+                      context.read<AppCubit>().approveItem(
                         existingItem: widget.item,
                         mainTitle: _mainTitleController.text,
                         secondaryTitle: _secondaryTitleController.text,
@@ -261,11 +262,12 @@ class _UpdateItemBottomSheetState extends State<UpdateItemBottomSheet> {
                         itemImage: _itemImage,
                         type: _selectedType,
                         category: searchTextController.text,
-                        // context: context
+                        imageUrl: widget.item.imageUrl,
+                        context: context
                       );
                       Navigator.of(context).pop(); // Close the bottom sheet after publishing
                     },
-                    buttonText: "Update",
+                    buttonText: "Approve",
                   ),
                   SizedBox(height: 15),
                 ],

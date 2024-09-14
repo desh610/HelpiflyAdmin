@@ -30,6 +30,7 @@ class _MainScreenState extends State<MainScreen> {
     // TODO: implement initState
     super.initState();
     context.read<AppCubit>().loadItems();
+    context.read<AppCubit>().loadRequests();
   }
 
   @override

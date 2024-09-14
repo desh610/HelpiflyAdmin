@@ -9,9 +9,14 @@ import 'package:helpiflyadmin/widgets/custom_searchbar.dart';
 import 'package:helpiflyadmin/widgets/new_item_bottomsheet.dart';
 import 'package:helpiflyadmin/widgets/update_item_bottomsheet.dart';
 
-class ItemsScreen extends StatelessWidget {
+class ItemsScreen extends StatefulWidget {
   ItemsScreen({super.key});
 
+  @override
+  State<ItemsScreen> createState() => _ItemsScreenState();
+}
+
+class _ItemsScreenState extends State<ItemsScreen> {
     final TextEditingController searchTextController = TextEditingController();
 
       void _showNewItemBottomSheet(BuildContext context) {
@@ -26,6 +31,7 @@ class ItemsScreen extends StatelessWidget {
       },
     );
   }
+
       void _showUpdateItemBottomSheet(BuildContext context, ItemModel item) {
     showModalBottomSheet(
       context: context,
@@ -34,9 +40,18 @@ class ItemsScreen extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(8.0)),
       ),
       builder: (BuildContext context) {
-        return UpdatetemBottomSheet(item: item);
+        return UpdateItemBottomSheet(item: item);
       },
     );
+  }
+
+  
+    @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    context.read<AppCubit>().loadItems();
+    context.read<AppCubit>().loadRequests();
   }
 
   @override

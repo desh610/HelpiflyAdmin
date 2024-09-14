@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:helpiflyadmin/constants/colors.dart';
 import 'package:helpiflyadmin/views/main_screen.dart';
@@ -14,12 +13,17 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: primaryColor,
       appBar: AppBar(
-        backgroundColor: white,
+        backgroundColor: primaryColor,
         automaticallyImplyLeading: false,
         centerTitle: true,
         elevation: 2,
-        title: Text("Helpifly Admin Portal", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: black),),
+        title: Text(
+          "Helpifly Admin Portal",
+          style: TextStyle(
+              fontSize: 14, fontWeight: FontWeight.bold, color: lightGrayColor),
+        ),
       ),
       body: Center(
         child: Padding(
@@ -27,19 +31,30 @@ class LoginScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CustomTextField(controller: codeController, hintText: "Admin code", overlineText: '',),
+              CustomTextField(
+                controller: codeController,
+                hintText: "Admin code",
+                overlineText: '',
+                backgroundColor: Colors.grey.shade800,
+                obscureText: true,
+              ),
               SizedBox(height: 15),
-              CustomButton(onTap: () async {
-                if(codeController.text == "hadmin"){
-                   Navigator.push(
+              CustomButton(
+                onTap: () async {
+                  if (codeController.text == "hadmin") {
+                    Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => MainScreen()),
                     );
 
-                     SharedPreferences prefs = await SharedPreferences.getInstance();
-                     await prefs.setBool('logged-in', true);
-                }
-              }, buttonText: "Access")
+                    SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    await prefs.setBool('logged-in', true);
+                  }
+                },
+                buttonText: "Access",
+                textColor: primaryColor,
+              )
             ],
           ),
         ),

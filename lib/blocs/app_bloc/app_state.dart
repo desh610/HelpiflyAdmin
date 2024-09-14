@@ -1,8 +1,10 @@
 import 'package:helpiflyadmin/models/item_model.dart';
+import 'package:helpiflyadmin/models/request_model.dart';
 
 class AppState {
   final List<String> categories;
   final List<ItemModel> items;
+  final List<RequestModel> requests;
   final bool isLoading;
   final String? error;
   final int currentTabIndex;
@@ -13,6 +15,7 @@ class AppState {
   AppState({
     required this.categories,
     required this.items,
+    required this.requests,
     required this.isLoading,
     this.error,
     this.currentTabIndex = 0,
@@ -24,6 +27,7 @@ class AppState {
   AppState copyWith({
     List<String>? categories,
     List<ItemModel>? items,
+    List<RequestModel>? requests,
     bool? isLoading,
     String? error,
     int? currentTabIndex,
@@ -34,6 +38,7 @@ class AppState {
     return AppState(
       categories: categories ?? this.categories,
       items: items ?? this.items,
+      requests: requests ?? this.requests,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
       currentTabIndex: currentTabIndex ?? this.currentTabIndex, // Corrected line
